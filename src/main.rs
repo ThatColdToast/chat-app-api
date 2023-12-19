@@ -1,9 +1,12 @@
+use std::{sync::Arc, time::Instant};
+
 use axum::{extract::State, response::Html, routing::get, Router};
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use surrealdb::{
     engine::remote::ws::{Client, Ws},
     opt::auth::Root,
-    sql::Thing,
+    sql::{Datetime, Thing},
     Surreal,
 };
 use tinytemplate::TinyTemplate;
@@ -17,12 +20,14 @@ struct User {
 struct Message {
     // author: User,
     body: String,
+    date: Datetime,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize)]
 struct MessageTemplate {
     author: String,
     body: String,
+    date: String,
 }
 
 #[derive(Debug, Deserialize)]
@@ -65,6 +70,8 @@ async fn main() {
         .await
         .expect("Failed to use namespace");
 
+    let mut tt = TinyTemplate::new();
+
     let app_state = AppState { db };
 
     let app = Router::new()
@@ -77,7 +84,7 @@ async fn main() {
 }
 
 async fn root() -> Html<&'static str> {
-    Html(include_str!("html/index.html"))
+    Html(include_str!("html/static/index.html"))
 }
 
 async fn get_messages(State(app_state): State<AppState>) -> Html<String> {
@@ -89,18 +96,12 @@ async fn get_messages(State(app_state): State<AppState>) -> Html<String> {
         }
     };
 
-    let message = match messages.last() {
-        Some(c) => c,
-        None => return Html("No messages".to_string()),
-    };
-
-    let chat = MessageTemplate {
-        author: "Username".to_string(),
-        body: message.body.clone(),
-    };
+    if messages.is_empty() {
+        return Html("No messages".to_string());
+    }
 
     let mut tt = TinyTemplate::new();
-    tt.add_template("chat", include_str!("html/chat.html"))
+    tt.add_template("chat", include_str!("html/template/chat.html"))
         .unwrap();
 
     let result: String = messages
@@ -108,6 +109,7 @@ async fn get_messages(State(app_state): State<AppState>) -> Html<String> {
         .map(|m| MessageTemplate {
             author: "Username".to_string(),
             body: m.body.clone(),
+            date: m.date.to_string(),
         })
         .map(|mt| tt.render("chat", &mt).unwrap())
         .collect();
@@ -138,6 +140,7 @@ async fn post_message(State(app_state): State<AppState>, req: String) -> Html<St
             //     name: "Username".to_string(),
             // },
             body: req,
+            date: Datetime(DateTime::from(chrono::Utc::now())),
         })
         .await
     {
