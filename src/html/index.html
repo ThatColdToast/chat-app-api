@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]>      <html class="no-js"> <!--<![endif]-->
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title></title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="styles.css">
+        <script src="https://cdn.tailwindcss.com"></script>
+        <script src="https://unpkg.com/htmx.org@1.9.9" integrity="sha384-QFjmbokDn2DjBjq+fM+8LUIVrAgqcNW2s0PjAxHETgRn9l4fvX31ZxDxvwQnyMOX" crossorigin="anonymous"></script>
+    </head>
+    <body>
+        <!--[if lt IE 7]>
+            <p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="#">upgrade your browser</a> to improve your experience.</p>
+        <![endif]-->
+
+        <div class="container mx-auto p-4">
+            <h1 class="text-3xl font-bold mb-4">Chat History</h1>
+            <div hx-get="/api/chat" hx-trigger="every 1s" class="space-y-4">
+              <div class="bg-white p-4 rounded-lg shadow-md">
+                <h3 class="text-lg font-semibold mb-2">Person 1</h3>
+                <p class="text-gray-700">Chat Body</p>
+              </div>
+              <div class="bg-white p-4 rounded-lg shadow-md">
+                <h3 class="text-lg font-semibold mb-2">Person 2</h3>
+                <p class="text-gray-700">Chat Body</p>
+              </div>
+              <div class="bg-white p-4 rounded-lg shadow-md">
+                <h3 class="text-lg font-semibold mb-2">Person 3</h3>
+                <p class="text-gray-700">Chat Body</p>
+              </div>
+            </div>
+
+            <form class="flex items-center mt-4">
+                <textarea name="message-box" type="text" placeholder="Type your message..." oninput='this.style.height = "";this.style.height = this.scrollHeight + 3 + "px"' class="flex-1 border border-gray-300 p-2 resize-none rounded-md focus:outline-none focus:border-blue-500"></textarea>
+                <button hx-post="/api/chat" hx-swap="none" hx-include="[name='message-box']" class="ml-2 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600">Send</button>
+            </form>
+          </div>
+    </body>
+</html>
