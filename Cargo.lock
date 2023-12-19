@@ -539,6 +539,7 @@ name = "chat-app-api"
 version = "0.1.0"
 dependencies = [
  "axum",
+ "dotenv",
  "serde",
  "serde_json",
  "surrealdb",
@@ -753,6 +754,12 @@ checksum = "bfaa1135a34d26e5cc5b4927a8935af887d4f30a5653a797c33b9a4222beb6d9"
 dependencies = [
  "urlencoding",
 ]
+
+[[package]]
+name = "dotenv"
+version = "0.15.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "77c90badedccf4105eca100756a0b1289e191f6fcbdadd3cee1d2f614f97da8f"
 
 [[package]]
 name = "earcutr"

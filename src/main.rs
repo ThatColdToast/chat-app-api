@@ -38,13 +38,24 @@ struct AppState {
 
 #[tokio::main]
 async fn main() {
-    let db = Surreal::new::<Ws>("192.168.1.20:8000")
-        .await
-        .expect("Failed to connect to server");
+    dotenv::dotenv().expect("Failed to load .env file");
+    // dotenv::dotenv().ok();
+
+    let db = Surreal::new::<Ws>(format!(
+        "{}:{}",
+        std::env::var("SURREAL_HOST").expect("SURREAL_HOST not set"),
+        std::env::var("SURREAL_PORT").expect("SURREAL_PORT not set")
+    ))
+    .await
+    .expect("Failed to connect to server");
 
     db.signin(Root {
-        username: "",
-        password: "",
+        username: std::env::var("SURREAL_USER")
+            .expect("SURREAL_USER not set")
+            .as_str(),
+        password: std::env::var("SURREAL_PASS")
+            .expect("SURREAL_PASS not set")
+            .as_str(),
     })
     .await
     .expect("Failed to sign in");
@@ -78,14 +89,10 @@ async fn get_messages(State(app_state): State<AppState>) -> Html<String> {
         }
     };
 
-    println!("{:?}", messages.len());
-
     let message = match messages.last() {
         Some(c) => c,
         None => return Html("No messages".to_string()),
     };
-
-    println!("{:?}", messages);
 
     let chat = MessageTemplate {
         author: "Username".to_string(),
@@ -105,13 +112,10 @@ async fn get_messages(State(app_state): State<AppState>) -> Html<String> {
         .map(|mt| tt.render("chat", &mt).unwrap())
         .collect();
 
-    // let result = tt.render("chat", &chat).unwrap();
-    println!("{:?}", result);
-
     Html(result)
 }
 
-async fn post_message(State(mut app_state): State<AppState>, req: String) -> Html<String> {
+async fn post_message(State(app_state): State<AppState>, req: String) -> Html<String> {
     // println!("{:?}", req);
 
     let req = match urlencoding::decode(&req) {
@@ -125,8 +129,6 @@ async fn post_message(State(mut app_state): State<AppState>, req: String) -> Htm
             return Html("Error".to_string());
         }
     };
-
-    println! {"{:?}", req};
 
     let messages: Vec<Record> = match app_state
         .db
@@ -145,15 +147,6 @@ async fn post_message(State(mut app_state): State<AppState>, req: String) -> Htm
             return Html("Error".to_string());
         }
     };
-
-    dbg!(messages);
-
-    // let chat = Chat {
-    //     name: "Username".to_string(),
-    //     body: req,
-    // };
-
-    // app_state.chats.push(chat);
 
     Html("Success".to_string())
 }
